@@ -1,0 +1,172 @@
+{
+  "name": "Pre entrega 1 - Agente de Conciliación Bancaria",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "eb437eb0-062e-4f64-8930-7b6d5cc4d505",
+      "name": "Entrada de consulta",
+      "webhookId": "3db8cc31-7588-4b9e-9b55-a4b9a28ea951"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "## ROL\n\nSos un Asistente de Análisis de Conciliación Bancaria.\n\nTu función es asistir en el análisis preliminar de diferencias entre movimientos bancarios y movimientos registrados en un sistema administrativo.\n\n## ÁMBITO\n\nPodés analizar movimientos, interpretar conceptos, consultar reglas de conciliación y proponer una clasificación preliminar.\n\nNo sos responsable de ejecutar modificaciones contables, eliminar movimientos, alterar importes ni confirmar una conciliación ambigua de forma autónoma.\n\n## OBJETIVO\n\nAnalizar la información proporcionada por el usuario y consultar las herramientas disponibles cuando sea necesario para determinar la clasificación más probable del caso.\n\nLas clasificaciones posibles incluyen:\n\n- CONCILIADO\n- CONCILIADO CON DIFERENCIA\n- REVISAR\n- BANCO SIN SISTEMA\n- SISTEMA SIN BANCO\n- NO CONCILIABLE\n\n## REGLAS\n\n1. No concilies dos movimientos únicamente porque tengan el mismo importe.\n2. La fecha puede diferir entre banco y sistema y debe utilizarse como criterio de apoyo, no como condición absoluta.\n3. Priorizá la naturaleza del movimiento, tipo de operación, importe, número de cheque, comprobante o referencia.\n4. Un movimiento bancario no puede utilizarse para conciliar dos movimientos diferentes del sistema.\n5. Un movimiento del sistema no puede utilizarse para conciliar dos movimientos bancarios diferentes.\n6. Considerá que pueden existir relaciones 1 a N y N a 1.\n7. No asumas que una diferencia de importe corresponde a una comisión sin evidencia.\n8. No inventes referencias, números de cheque, importes ni movimientos.\n9. Cuando exista ambigüedad, clasificá el caso como REVISAR.\n10. Consultá la herramienta de reglas de conciliación cuando necesites validar qué tratamiento corresponde a un caso.\n11. No utilices lenguaje inclusivo en las respuestas.\n\n## ESCALAMIENTO\n\nSi no existe evidencia suficiente para confirmar una correspondencia o si el caso implica una diferencia relevante, devolvé REVISAR y explicá qué debería verificar una persona.\n\nNunca fuerces una conciliación solamente para que los totales coincidan.\n\n\n## FORMATO DE RESPUESTA\n\nRespondé siempre en texto claro y estructurado, sin utilizar sintaxis Markdown como **, ##, ### o backticks.\n\nUsá este formato:\n\nCLASIFICACIÓN:\n[estado]\n\nANÁLISIS:\n[explicación breve]\n\nREGLA APLICADA:\n[regla utilizada]\n\nACCIONES RECOMENDADAS:\n1. ...\n2. ...\n3. ...\n\nLa respuesta debe ser clara, breve y apta para incluir directamente en un correo electrónico.",
+          "maxIterations": 5
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        224,
+        0
+      ],
+      "id": "e09f9f7f-08f5-40ab-b43f-902089988215",
+      "name": "Agente de Conciliación"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        176,
+        224
+      ],
+      "id": "811ebfd8-e8b7-4b23-8cca-50043851faf8",
+      "name": "Modelo Gemini",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "t7ci5T0lJdlSpr7q",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Utilizá esta herramienta para consultar las reglas de negocio de conciliación bancaria.\n\nDebés activarla cuando necesites determinar cómo tratar diferencias de fecha, diferencias de importe, cheques, transferencias, movimientos sin contraparte, duplicados o relaciones 1:N y N:1.\n\nLas reglas recuperadas constituyen la referencia operativa para clasificar un caso.\n\nNo utilices una coincidencia de importe como única evidencia de conciliación. Cuando las reglas o los datos no permitan una conclusión segura, clasificá el caso como REVISAR.",
+        "documentId": {
+          "__rl": true,
+          "value": "1gd2iF78NfA0jwwrYVueTWAuYoNZCi3l8ixA5uq1vHNY",
+          "mode": "list",
+          "cachedResultName": "Conciliacion Bancaria - Base de Casos",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1gd2iF78NfA0jwwrYVueTWAuYoNZCi3l8ixA5uq1vHNY/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Reglas",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1gd2iF78NfA0jwwrYVueTWAuYoNZCi3l8ixA5uq1vHNY/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        384,
+        208
+      ],
+      "id": "745caf64-0994-442b-b1fc-491c54504300",
+      "name": "Reglas de Conciliación",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "f48IJ8vU6zP6TgfM",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "lucorral8@gmail.com",
+        "subject": "Tarea completada - Conciliación Bancaria",
+        "message": "=<div style=\"font-family: Arial, sans-serif; line-height: 1.5; color: #222;\">\n  <h2 style=\"margin-bottom: 8px;\">Tarea completada - Reporte de Conciliación Bancaria</h2>\n\n  <div style=\"margin: 16px 0;\">\n    <strong>Consulta analizada</strong>\n    <div style=\"margin-top: 6px; padding: 12px; border: 1px solid #ddd; border-radius: 8px;\">\n      {{ $('Entrada de consulta').item.json.chatInput }}\n    </div>\n  </div>\n\n  <div style=\"margin: 16px 0;\">\n    <strong>Resultado del agente</strong>\n    <div style=\"margin-top: 6px; padding: 12px; border: 1px solid #ddd; border-radius: 8px; white-space: pre-wrap;\">\n      {{ $json.output }}\n    </div>\n  </div>\n\n  <hr style=\"margin: 20px 0; border: none; border-top: 1px solid #ddd;\">\n\n  <div style=\"font-size: 12px; color: #666;\">\n    Estado: Tarea completada.<br>\n    Generado automáticamente por el Agente de Conciliación Bancaria.\n  </div>\n</div>",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        592,
+        0
+      ],
+      "id": "bd273f83-2c9b-4719-b6b3-91e445fc67da",
+      "name": "Log de Observabilidad",
+      "webhookId": "5a6c2bf4-0c5b-47b0-95a5-06f405a4a74a",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "4DtefAmJkB5AIeEP",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Entrada de consulta": {
+      "main": [
+        [
+          {
+            "node": "Agente de Conciliación",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agente de Conciliación": {
+      "main": [
+        [
+          {
+            "node": "Log de Observabilidad",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Modelo Gemini": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agente de Conciliación",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reglas de Conciliación": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente de Conciliación",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "2f65d139-58b5-4bdd-baf9-6a0b9ee0bc94",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7fe6e141e19c3e832a6706d1696a0e826e299b422d76affacb9b675f3cfe1db1"
+  },
+  "nodeGroups": [],
+  "id": "3CKg8lCvth7LDwI2",
+  "tags": []
+}
