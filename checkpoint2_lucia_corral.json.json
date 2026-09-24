@@ -1,0 +1,678 @@
+{
+  "name": "Pre entrega 2 - Manager de Conciliación Bancaria",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        80
+      ],
+      "id": "67be58da-94a8-4357-b919-2d0a4dad51bc",
+      "name": "Entrada de consulta",
+      "webhookId": "3d722fc3-fdeb-4106-bb7d-4c948f8408b8"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        240,
+        304
+      ],
+      "id": "b75473ab-ca20-400d-8fc3-e3b517b80222",
+      "name": "Modelo Gemini",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "t7ci5T0lJdlSpr7q",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Utilizá esta herramienta para consultar las reglas de negocio de conciliación bancaria.\n\nDebés activarla cuando necesites determinar cómo tratar diferencias de fecha, diferencias de importe, cheques, transferencias, movimientos sin contraparte, duplicados o relaciones 1:N y N:1.\n\nLas reglas recuperadas constituyen la referencia operativa para clasificar un caso.\n\nNo utilices una coincidencia de importe como única evidencia de conciliación. Cuando las reglas o los datos no permitan una conclusión segura, clasificá el caso como REVISAR.",
+        "documentId": {
+          "__rl": true,
+          "value": "1gd2iF78NfA0jwwrYVueTWAuYoNZCi3l8ixA5uq1vHNY",
+          "mode": "list",
+          "cachedResultName": "Conciliacion Bancaria - Base de Casos",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1gd2iF78NfA0jwwrYVueTWAuYoNZCi3l8ixA5uq1vHNY/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Reglas",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1gd2iF78NfA0jwwrYVueTWAuYoNZCi3l8ixA5uq1vHNY/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        368,
+        304
+      ],
+      "id": "bab827ef-3bc8-471f-9f3a-efc0741424c7",
+      "name": "Reglas de Conciliación",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "f48IJ8vU6zP6TgfM",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "lucorral8@gmail.com",
+        "subject": "Tarea completada - Conciliación Bancaria",
+        "message": "=<div style=\"font-family: Arial, sans-serif; line-height: 1.5; color: #222;\">\n  <h2>Tarea completada - Conciliación Bancaria M2</h2>\n\n  <p><strong>Worker invocado:</strong> {{ $json.worker }}</p>\n\n  <p><strong>Estado:</strong> {{ $json.status }}</p>\n\n  <p><strong>Consulta analizada:</strong></p>\n  <div style=\"padding: 10px; border: 1px solid #ddd; border-radius: 8px;\">\n    {{ $('Entrada de consulta').item.json.chatInput }}\n  </div>\n\n  <p><strong>Resultado devuelto:</strong></p>\n  <div style=\"padding: 10px; border: 1px solid #ddd; border-radius: 8px; white-space: pre-wrap;\">\n    {{ $json.resultado }}\n  </div>\n\n  <hr style=\"margin: 20px 0; border: none; border-top: 1px solid #ddd;\">\n\n  <div style=\"font-size: 12px; color: #666;\">\n    Estado final: Tarea completada.\n  </div>\n</div>",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1472,
+        0
+      ],
+      "id": "731d2b2e-d37b-4052-a7d6-2153fcca522c",
+      "name": "Log de Observabilidad",
+      "webhookId": "85289a2b-91b2-46f0-a83e-3d11fae5b8cd",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "4DtefAmJkB5AIeEP",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "## ROL\n\nSos el Manager de un sistema multi-agente de conciliación bancaria.\n\nTu responsabilidad es interpretar la consulta recibida y decidir qué tipo de especialista debe analizarla.\n\nNo debés resolver el análisis técnico completo. Tu función es clasificar y enrutar.\n\n## TAXONOMÍA\n\nSolo podés clasificar una consulta en una de estas categorías:\n\nCHEQUES\nCasos relacionados con cheques, Echeq, depósitos de cheques, número de cheque, G. DE CHEQUE, G. DE ECHEQ, diferencias de importe o fecha en cheques y venta o descuento de documentos.\n\nTARJETAS\nCasos relacionados con tarjetas, pagos con tarjeta, lotes, liquidaciones, NAVE, FIRSTDATA, acreditaciones o diferencias relacionadas con operaciones de tarjeta.\n\nTRANSFERENCIAS\nCasos relacionados con transferencias bancarias, transferencias propias o de terceros, movimientos entre cuentas, pagos por transferencia, diferencias de fecha o referencias bancarias.\n\nOTRO\nCualquier caso que no pueda clasificarse con seguridad dentro de las categorías anteriores.\n\n## REGLAS\n\n1. No realices el análisis técnico completo.\n2. Elegí solamente una categoría.\n3. Si la consulta es sobre cheques o Echeq, devolvé CHEQUES.\n4. Si la consulta es sobre tarjetas o liquidaciones de tarjetas, devolvé TARJETAS.\n5. Si la consulta es sobre transferencias, devolvé TRANSFERENCIAS.\n6. Si existe duda o el movimiento no pertenece claramente a una categoría, devolvé OTRO.\n7. No inventes información.\n8. No utilices lenguaje inclusivo.\n\n## SALIDA\n\nRespondé únicamente con una de estas palabras:\n\nCHEQUES\nTARJETAS\nTRANSFERENCIAS\nOTRO",
+          "maxIterations": 5
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        224,
+        80
+      ],
+      "id": "207187f6-6b68-425b-8042-81b03c6a45c1",
+      "name": "Manager de Conciliación"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{$json.output}}",
+                    "rightValue": "CHEQUES",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "ce1b9d84-c689-400b-a3dc-e975b4caa7a4"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Cheques"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "e62c8dd8-04f6-4e4b-a154-b0a3913fb202",
+                    "leftValue": "={{$json.output}}",
+                    "rightValue": "TARJETAS",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Tarjetas"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "26452aa6-8585-4594-962e-db39cab7192f",
+                    "leftValue": "={{$json.output}}",
+                    "rightValue": "TRANSFERENCIAS",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Transferencias"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "167ba0db-5e1c-4a25-ae28-ec905fb90084",
+                    "leftValue": "={{$json.output}}",
+                    "rightValue": "OTRO",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Otro"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        576,
+        48
+      ],
+      "id": "6dfc3018-6cd7-4b9d-885e-2ed3fc19e694",
+      "name": "Enrutamiento por tipo"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d6ff6bdd-e402-4c05-af8e-f4a35f7f35c0",
+              "name": "consulta",
+              "value": "={{ $('Entrada de consulta').item.json.chatInput }}",
+              "type": "string"
+            },
+            {
+              "id": "78e3b926-0c46-4584-af4f-723ef2bef738",
+              "name": "categoria",
+              "value": "Cheques",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        800,
+        -160
+      ],
+      "id": "075d8a53-ff08-4942-8bdb-4e3de4bfa57f",
+      "name": "Preparar datos Cheques"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "516896aa-d829-4e71-b6b3-ab608f6956f3",
+              "name": "consulta",
+              "value": "={{ $('Entrada de consulta').item.json.chatInput }}",
+              "type": "string"
+            },
+            {
+              "id": "7f96e529-a578-4d41-8542-114ed81b15a2",
+              "name": "categoria",
+              "value": "Transferencias",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        800,
+        80
+      ],
+      "id": "3abb2b59-1c52-4413-bbc4-c83bfe89202c",
+      "name": "Preparar datos transferencias"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7f93988d-b388-4e9a-9e70-d7e452771229",
+              "name": "status",
+              "value": "error",
+              "type": "string"
+            },
+            {
+              "id": "9d580100-7683-47d7-ab0f-f7669e25b24c",
+              "name": "worker",
+              "value": "Cheques",
+              "type": "string"
+            },
+            {
+              "id": "b04820ad-a320-426a-92e4-e2a1c2721540",
+              "name": "resultado",
+              "value": "No fue posible procesar el caso. Requiere revisión humana.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1248,
+        -240
+      ],
+      "id": "dc58dbb6-2db5-4549-b860-175f9ad478a8",
+      "name": "Fallback worker cheques"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "JRGP9lOhDibKMFbN",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/JRGP9lOhDibKMFbN",
+          "cachedResultName": "M2 - Worker Cheques"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "consulta": "={{ $json.consulta }}",
+            "categoria": "={{ $json.categoria }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "consulta",
+              "displayName": "consulta",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "categoria",
+              "displayName": "categoria",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1024,
+        -160
+      ],
+      "id": "bf18a0e9-2c51-4b7d-b9e0-4502850b0177",
+      "name": "Ejecutar Worker Cheques",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "e2lP9TGHoFZo49kM",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/e2lP9TGHoFZo49kM",
+          "cachedResultName": "M2 - Worker transferencias"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "consulta": "={{ $json.consulta }}",
+            "categoria": "={{ $json.categoria }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "consulta",
+              "displayName": "consulta",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "categoria",
+              "displayName": "categoria",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1024,
+        80
+      ],
+      "id": "4040d380-d85d-41c7-8de9-0632fd35d221",
+      "name": "Ejecutar worker transferencias",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d1f617cc-93a7-4c0d-8046-a3c3b934df79",
+              "name": "status",
+              "value": "error",
+              "type": "string"
+            },
+            {
+              "id": "053fbcbf-247b-49bd-9d09-5be30d8b36c2",
+              "name": "worker",
+              "value": "Transferencias",
+              "type": "string"
+            },
+            {
+              "id": "0aa5eab8-835e-4093-b990-5d439fc935f3",
+              "name": "resultado",
+              "value": "No fue posible procesar el caso. Requiere revisión humana.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1248,
+        144
+      ],
+      "id": "d03d80f7-715d-4b6f-b577-0f80c887c3c8",
+      "name": "Fallback worker transferencias"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2c4776bf-d5a1-4f53-99b5-78a797066256",
+              "name": "status",
+              "value": "review_required",
+              "type": "string"
+            },
+            {
+              "id": "91b00011-702f-4aa2-8108-75caf5330f3f",
+              "name": "worker",
+              "value": "Supervisor humano",
+              "type": "string"
+            },
+            {
+              "id": "e43499b1-52c0-4bf6-997c-0eedd304ab16",
+              "name": "resultado",
+              "value": "La consulta no pudo clasificarse con seguridad como Cheques o Transferencias. Requiere revisión humana.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1248,
+        336
+      ],
+      "id": "ae2fa24e-564a-4ab7-9c71-0adb93dd3e03",
+      "name": "Revision humana"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Entrada de consulta": {
+      "main": [
+        [
+          {
+            "node": "Manager de Conciliación",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Modelo Gemini": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Manager de Conciliación",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reglas de Conciliación": {
+      "ai_tool": [
+        [
+          {
+            "node": "Manager de Conciliación",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manager de Conciliación": {
+      "main": [
+        [
+          {
+            "node": "Enrutamiento por tipo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enrutamiento por tipo": {
+      "main": [
+        [
+          {
+            "node": "Preparar datos Cheques",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [],
+        [
+          {
+            "node": "Preparar datos transferencias",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Revision humana",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar datos Cheques": {
+      "main": [
+        [
+          {
+            "node": "Ejecutar Worker Cheques",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar datos transferencias": {
+      "main": [
+        [
+          {
+            "node": "Ejecutar worker transferencias",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fallback worker cheques": {
+      "main": [
+        [
+          {
+            "node": "Log de Observabilidad",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ejecutar Worker Cheques": {
+      "main": [
+        [
+          {
+            "node": "Log de Observabilidad",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Fallback worker cheques",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ejecutar worker transferencias": {
+      "main": [
+        [
+          {
+            "node": "Log de Observabilidad",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Fallback worker transferencias",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fallback worker transferencias": {
+      "main": [
+        [
+          {
+            "node": "Log de Observabilidad",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Revision humana": {
+      "main": [
+        [
+          {
+            "node": "Log de Observabilidad",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "c5879ef9-b2f3-41bd-a0b0-f8c80d66ff57",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7fe6e141e19c3e832a6706d1696a0e826e299b422d76affacb9b675f3cfe1db1"
+  },
+  "nodeGroups": [],
+  "id": "vcg4G8FczPHOdICD",
+  "tags": []
+}
