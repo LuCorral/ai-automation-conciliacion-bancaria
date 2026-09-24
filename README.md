@@ -1,28 +1,24 @@
-# Sistema Agéntico de Conciliación Bancaria
+# AI Automation - Conciliación Bancaria
 
-Pre-entrega 1 del proyecto integrador de AI Automation Avanzado.
+Sistema agéntico de conciliación bancaria desarrollado en n8n para el curso AI Automation Avanzado de Coder House.
 
-Esta primera versión implementa un agente base en n8n para el análisis preliminar de casos de conciliación bancaria.
+El proyecto evoluciona módulo a módulo incorporando memoria persistente, arquitectura multi-agente e integraciones externas con Gmail, HubSpot y Slack.
 
-## Componentes
+## Checkpoint 4 - Integraciones avanzadas
 
-- Chat Trigger
-- AI Agent
-- Google Gemini Chat Model
-- Google Sheets como Tool para consultar reglas de conciliación
-- System Prompt con guardrails
-- Límite de 5 iteraciones
-- Gmail como log de observabilidad
+Incluye:
 
-## Objetivo
+- Entrada por Gmail mediante OAuth2
+- Filtro anti auto-reply
+- Memoria persistente por Session_ID
+- Manager multi-agente
+- Workers de cheques y transferencias
+- Lookup previo de contactos en HubSpot
+- Creación/actualización de contactos
+- Limpieza de payload antes de Slack
+- Notificación en Slack
+- Gmail Create Draft como Human-in-the-loop
 
-Analizar casos preliminares de conciliación bancaria, consultar reglas de negocio y clasificar situaciones como:
+Archivo de entrega:
 
-- CONCILIADO
-- CONCILIADO CON DIFERENCIA
-- REVISAR
-- BANCO SIN SISTEMA
-- SISTEMA SIN BANCO
-- NO CONCILIABLE
-
-Este workflow corresponde al Módulo 1 y será ampliado en los siguientes checkpoints con arquitectura multi-agente, memoria, integraciones, RAG, supervisión y trazabilidad.
+`checkpoint4_lucia_corral.json`
