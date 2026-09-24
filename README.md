@@ -2,7 +2,10 @@
 
 Sistema agéntico de conciliación bancaria desarrollado en n8n para el curso AI Automation Avanzado de Coder House.
 
-El proyecto evoluciona módulo a módulo incorporando memoria persistente, arquitectura multi-agente e integraciones externas con Gmail, HubSpot y Slack.
+El proyecto evoluciona módulo a módulo incorporando memoria persistente, arquitectura multi-agente e integraciones externas.
+
+## Pre-entrega 1
+Primera versión del agente de conciliación bancaria.
 
 ## Checkpoint 4 - Integraciones avanzadas
 
@@ -19,6 +22,5 @@ Incluye:
 - Notificación en Slack
 - Gmail Create Draft como Human-in-the-loop
 
-Archivo de entrega:
-
+Archivo:
 `checkpoint4_lucia_corral.json`
